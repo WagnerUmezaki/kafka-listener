@@ -1,0 +1,74 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://packages.confluent.io/maven/"
+        }
+    }
+
+    ext {
+        set('springBootVersion', '2.3.1.RELEASE')
+        set('springCloudVersion', 'Hoxton.SR9')
+        set('gradleAvroPluginVersion', '1.2.0')
+        set('springCloudStreamSchema', '2.1.4.RELEASE')
+        set('apacheAvroVersion', '1.10.2')
+        set('confluentKafkaAvroSerializerVersion', '6.1.1')
+    }
+
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+        classpath "com.github.davidmc24.gradle.plugin:gradle-avro-plugin:$gradleAvroPluginVersion"
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'com.github.davidmc24.gradle.plugin.avro'
+
+sourceCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven/"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation 'org.springframework.cloud:spring-cloud-stream-binder-kafka'
+    implementation "org.springframework.cloud:spring-cloud-stream-schema:$springCloudStreamSchema"
+    implementation "org.apache.avro:avro:$apacheAvroVersion"
+    implementation "io.confluent:kafka-avro-serializer:$confluentKafkaAvroSerializerVersion"
+
+    runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:$springBootVersion"
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion"
+    }
+}
+
+avro {
+    fieldVisibility = "PRIVATE"
+}
+
+generateAvroJava {
+    source 'src/main/resources/avro'
+}
